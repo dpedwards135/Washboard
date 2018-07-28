@@ -107,6 +107,7 @@ All laundry not set aside as delicate or hang dry will be dried on medium heat t
     <string name="title_pickup">Next Pickup</string>
     <string name="title_account">Account</string>
     <string name="title_orders">Orders</string>
+    <string name="title_order_history">History</string>
 
     <string name="is_soiled">Contains heavily soiled items: </string>
     <string name="is_softener">Requires fabric softener: </string>
@@ -119,12 +120,23 @@ All laundry not set aside as delicate or hang dry will be dried on medium heat t
     <string name="paused">Paused</string>
     <string name="active">Active</string>
     <string name="today">Today</string>
-    <string name="next_pickup_is">Next pickup is </string>
+    <string name="next_pickup_is">Next pickup is</string>
     <string name="yes">yes</string>
     <string name="order_notes">Order notes: </string>
     <string name="order_id">Order ID: </string>
+    <string name="save_order">Save Order</string>
+    <string name="order_is_paused">Order is paused. Please press play to continue to receive pickups.</string>
+    <string name="confirmation_text">You\'re all set! Continue on to see your order and edit if needed.</string>
 
+    <string name="edit_account">Edit Account</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="reset_button">Reset Password</string>
+    <string name="logout">Logout</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="reset_password_text">Please enter your email address. You will receive an email with directions to reset your password.</string>
 
+    <string name="reset_email_sent">Reset email sent. Please check your email account.</string>
+    <string name="account_not_found">Account not found. Please check address or create a new account.</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

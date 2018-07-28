@@ -24,6 +24,8 @@ class OptionsFragment : Fragment() {
     private var mParam1: String? = null
     private var mParam2: String? = null
 
+
+
     //private var mListener: OnFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +49,10 @@ class OptionsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (activity as SetupActivity).setupOptions()
+        if(activity is SetupActivity) (activity as SetupActivity).editOrderController.setupOptions()
+        if(activity is MainActivity) (activity as MainActivity).editOrderController.setupOptions()
+
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -86,7 +91,7 @@ class OptionsFragment : Fragment() {
      * See the Android Training lesson [Communicating with Other Fragments](http://developer.android.com/training/basics/fragments/communicating.html) for more information.
      */
 
-    /*
+
     interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         fun onFragmentInteraction(uri: Uri)
@@ -116,5 +121,5 @@ class OptionsFragment : Fragment() {
             return fragment
         }
     }
-    */
+
 }// Required empty public constructor

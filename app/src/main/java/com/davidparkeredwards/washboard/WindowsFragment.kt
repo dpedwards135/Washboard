@@ -1,8 +1,10 @@
 package com.davidparkeredwards.washboard
 
 
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -51,12 +53,33 @@ class WindowsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        Log.i("WindowsFragment", "view_created")
 
         if(radioGroup != null) {
             view.findViewById<LinearLayout>(R.id.windows_layout).addView(radioGroup)
         }
 
         view.findViewById<TextView>(R.id.window_text).text = getString(R.string.windows_explanation) + windowsText
+
+    }
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        Log.i("WindowsFragment", "on_attach")
+    }
+
+    fun displayNewWindows() {
+
+        Log.i("WindowsFragment", "Display1")
+
+        if(radioGroup == null) Log.i("WindowsFragment", "radiogroup is null")
+        if(activity == null) Log.i("WindowsFragment", "view is null")
+
+        if(radioGroup != null && activity != null) {
+            Log.i("WindowsFragment", "Display2")
+
+
+        }
 
 
     }

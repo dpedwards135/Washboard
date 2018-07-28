@@ -2,14 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/pickup_view"
-        android:icon="@drawable/ic_home_black_24dp"
-        android:title="@string/title_pickup" />
-
-    <item
         android:id="@+id/orders_view"
         android:icon="@drawable/ic_dashboard_black_24dp"
         android:title="@string/title_orders" />
+
+    <item
+        android:id="@+id/order_history"
+        android:icon="@drawable/ic_home_black_24dp"
+        android:title="@string/title_order_history" />
 
     <item
         android:id="@+id/account_view"

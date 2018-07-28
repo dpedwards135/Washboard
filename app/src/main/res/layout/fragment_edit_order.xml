@@ -6,33 +6,50 @@
     tools:context="com.davidparkeredwards.washboard.EditOrderFragment">
 
     <!-- TODO: Update blank fragment layout -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/hello_blank_fragment" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/back"
         android:id="@+id/options_fragment_container">
-        <include layout="@layout/fragment_options"></include>
     </FrameLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/back"
         android:id="@+id/windows_fragment_container">
-        <include layout="@layout/fragment_windows"></include>
     </FrameLayout>
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/back"
         android:id="@+id/instructions_fragment_container">
-        <include layout="@layout/fragment_instructions"></include>
     </FrameLayout>
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/back"
         android:id="@+id/payment_fragment_container">
-        <include layout="@layout/fragment_payment"></include>
     </FrameLayout>
+    </LinearLayout>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/save_order_button"
+        android:text="@string/save_order"
+        android:onClick="saveFromSingleView"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="50dp" />
 
 </LinearLayout>

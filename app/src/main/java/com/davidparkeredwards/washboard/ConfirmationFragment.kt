@@ -10,10 +10,10 @@ import android.view.ViewGroup
 
 /**
  * A simple [Fragment] subclass.
- * Use the [InstructionsFragment.newInstance] factory method to
+ * Use the [ConfirmationFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class InstructionsFragment : Fragment() {
+class ConfirmationFragment : Fragment() {
 
     // TODO: Rename and change types of parameters
     private var mParam1: String? = null
@@ -22,22 +22,15 @@ class InstructionsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (arguments != null) {
-            mParam1 = arguments?.getString(ARG_PARAM1)
-            mParam2 = arguments?.getString(ARG_PARAM2)
+            mParam1 = arguments!!.getString(ARG_PARAM1)
+            mParam2 = arguments!!.getString(ARG_PARAM2)
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        super.onCreateView(inflater, container, savedInstanceState)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        return inflater!!.inflate(R.layout.fragment_instructions, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        if(activity is SetupActivity) (activity as SetupActivity).editOrderController.setupInstructions()
-        if(activity is MainActivity) (activity as MainActivity).editOrderController.setupInstructions()
+        return inflater.inflate(R.layout.fragment_confirmation, container, false)
     }
 
     companion object {
@@ -52,11 +45,11 @@ class InstructionsFragment : Fragment() {
          *
          * @param param1 Parameter 1.
          * @param param2 Parameter 2.
-         * @return A new instance of fragment InstructionsFragment.
+         * @return A new instance of fragment ConfirmationFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(param1: String, param2: String): InstructionsFragment {
-            val fragment = InstructionsFragment()
+        fun newInstance(param1: String, param2: String): ConfirmationFragment {
+            val fragment = ConfirmationFragment()
             val args = Bundle()
             args.putString(ARG_PARAM1, param1)
             args.putString(ARG_PARAM2, param2)

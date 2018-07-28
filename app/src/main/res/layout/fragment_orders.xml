@@ -26,7 +26,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/edit_order_container"
                 android:visibility="gone">
-                <include layout="@layout/fragment_edit_order"/>
+
             </FrameLayout>
 
             <LinearLayout
@@ -54,7 +54,8 @@
                     <Button
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:id="@+id/pause_button"/>
+                        android:id="@+id/pause_button"
+                        android:onClick="pauseOrder"/>
                 </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"

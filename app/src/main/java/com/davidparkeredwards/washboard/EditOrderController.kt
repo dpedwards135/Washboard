@@ -16,14 +16,15 @@ import com.google.firebase.database.ValueEventListener
 /**
  * Created by davidedwards on 7/27/18.
  */
-class EditOrderController(activity: AppCompatActivity) {
+class EditOrderController(activity: AppCompatActivity, delegate: EditOrderDelegate) {
 
 
     var activity = activity
-
+    var delegate = delegate
 
     var order = Order()
     var checkedWindowTag = ""
+    var windowsFragment : WindowsFragment? = null
 
     //val list = ArrayList<Window>()
     var radioGroup: RadioGroup? = null
@@ -36,10 +37,24 @@ class EditOrderController(activity: AppCompatActivity) {
     var orderZip = ""
     var zipInfo: ZipInfo? = null
     var orderToEdit: String = ""
+    var optionsFragment : OptionsFragment? = null
 
-    fun setup() {
+    fun setup(order: Order) {
+
+        this.order = order
+        if (this.order.zip != "") {
+            orderZip = this.order.zip
+        } else {
+            orderZip = userZip
+        }
+        if(order.window != null) {
+            checkedWindowTag = order.window!!.id()
+        }
+        //getZipData(true)
+
 
         getUserAddress()
+
 
     }
 
@@ -82,21 +97,16 @@ class EditOrderController(activity: AppCompatActivity) {
             softenerTextView.setText(order.softenerNote)
         }
 
-
-        if (order.address != "") {
+        if (orderZip != null && orderZip != "") {
+            (activity.findViewById<TextView>(R.id.pickup_zip)).setText(orderZip)
+        }
+        if (order.address != "" && order.zip == orderZip) {
             (activity.findViewById<AutoCompleteTextView>(R.id.pickup_address)).setText(order.address)
-            if (order.cityAndState != "") {
-                (activity.findViewById<AutoCompleteTextView>(R.id.pickup_city)).setText(order.cityAndState)
-            } else {
-                (activity.findViewById<AutoCompleteTextView>(R.id.pickup_city)).setText(userCityAndState)
-            }
-            if (order.zip != "") {
-                (activity.findViewById<AutoCompleteTextView>(R.id.pickup_zip)).setText(order.zip)
-            } else {
-                (activity.findViewById<AutoCompleteTextView>(R.id.pickup_zip)).setText(userCityAndState)
-            }
+            (activity.findViewById<AutoCompleteTextView>(R.id.pickup_city)).setText(order.cityAndState)
+
         } else if (userZip == orderZip) {
             (activity.findViewById<AutoCompleteTextView>(R.id.pickup_address)).setText(userAddress)
+            (activity.findViewById<AutoCompleteTextView>(R.id.pickup_city)).setText(userCityAndState)
         }
 
 
@@ -104,18 +114,25 @@ class EditOrderController(activity: AppCompatActivity) {
 
     fun setupOptions() {
         //val group = activity.findViewById<RadioGroup>(R.id.option_radios)
-        activity.findViewById<EditText>(R.id.zip_edittext).setText(orderZip)
-        activity.findViewById<Button>(R.id.update_button).setOnClickListener(object : View.OnClickListener {
+        Log.i("EOC", "Setup Options" + orderZip)
+        if(optionsFragment == null || optionsFragment!!.view == null) return
+        optionsFragment!!.view!!.findViewById<EditText>(R.id.zip_edittext).setText(orderZip)
+        optionsFragment!!.view!!.findViewById<Button>(R.id.update_button).setOnClickListener(object : View.OnClickListener {
             override fun onClick(p0: View?) {
                 orderZip = (activity.findViewById<EditText>(R.id.zip_edittext)).text.toString()
-                getZipData(true)
+                getZipData(true) //FIX
+                Log.i("EOC", "button click")
+
                 val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 if (activity.currentFocus != null) {
                     imm.hideSoftInputFromWindow(activity.currentFocus.getWindowToken(), 0)
                 }
+
+
             }
         })
 
+        Log.i("EOC", "1")
         if (zipInfo == null || zipInfo?.serviced != true) {
             activity.findViewById<RadioGroup>(R.id.option_radios).visibility = View.GONE
             activity.findViewById<TextView>(R.id.options_intro).setText(activity.getString(R.string.service_unavailable_zip))
@@ -125,6 +142,7 @@ class EditOrderController(activity: AppCompatActivity) {
             activity.findViewById<TextView>(R.id.options_intro).setText(activity.getString(R.string.options_intro))
 
         }
+        Log.i("EOC", "2")
 
         activity.findViewById<RadioButton>(R.id.single_option)
                 .setText("$" + zipInfo!!.singlePrice + " " + activity.getString(R.string.option1))
@@ -133,6 +151,8 @@ class EditOrderController(activity: AppCompatActivity) {
         activity.findViewById<RadioButton>(R.id.enterprise_option)
                 .setText("$" + zipInfo!!.enterprisePrice + " " + activity.getString(R.string.option3))
 
+        Log.i("EOC", "3")
+
         when (order.orderType) {
             "SINGLE" -> activity.findViewById<RadioButton>(R.id.single_option).isChecked = true
             "STANDARD" -> activity.findViewById<RadioButton>(R.id.standard_option).isChecked = true
@@ -140,14 +160,25 @@ class EditOrderController(activity: AppCompatActivity) {
             else -> { // Note the block
                 activity.findViewById<RadioButton>(R.id.standard_option).isChecked = true
             }
+
+        }
+
+        Log.i("EOC", "4")
+        if (zipInfo!!.serviced) {
+            delegate.onRadioClick()
         }
 
     }
 
     fun saveOrder() {
-        val progressBar = activity.findViewById<ProgressBar>(R.id.save_order_progress_bar)
-        progressBar.animate()
-        progressBar.visibility = View.VISIBLE
+        /*
+        val progressBar = ProgressBar(activity)
+        if(activity is SetupActivity) {
+            val progressBar = activity.findViewById<ProgressBar>(R.id.save_order_progress_bar)
+
+            progressBar.animate()
+            progressBar.visibility = View.VISIBLE
+        } */
 
 
         val database = FirebaseDatabase.getInstance()
@@ -169,13 +200,17 @@ class EditOrderController(activity: AppCompatActivity) {
                         database.getReference("user/" + mAuth.currentUser?.uid + "/orders/" + order.id).setValue(dbOrder)
                         Log.i("SETUP", "SetValue 1")
                     }
-
-                    progressBar.visibility = View.GONE
+                    /*
+                    if(activity is SetupActivity) {
+                        progressBar.visibility = View.GONE
+                    } */
                 } else {
                     order.id = dbref.push().key
                     val dbOrder = order.toDb()
                     database.getReference("user/" + mAuth.currentUser?.uid + "/orders/" + order.id).setValue(dbOrder)
-                    progressBar.visibility = View.GONE
+                    /* if(activity is SetupActivity) {
+                        progressBar.visibility = View.GONE
+                    } */
                     Log.i("SETUP", "SetValue 2")
                 }
             }
@@ -199,8 +234,8 @@ class EditOrderController(activity: AppCompatActivity) {
                     userAddress = dataSnapshot.child("street_address").value as String
                     userCityAndState = dataSnapshot.child("city_state").value as String
                     userZip = dataSnapshot.child("zip").value as String
-                    orderZip = userZip
-                    getZipData(false)
+                    if (orderZip == "") orderZip = userZip
+                    getZipData(true)
 
                     Log.i("SETUP", "Get Address")
                 }
@@ -214,6 +249,7 @@ class EditOrderController(activity: AppCompatActivity) {
     }
 
     fun getZipData(changingZip: Boolean) {
+        Log.i("EOC", "ZipData")
 
         val dbref = FirebaseDatabase.getInstance().getReference("zip/" + orderZip)
         dbref.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -227,6 +263,7 @@ class EditOrderController(activity: AppCompatActivity) {
 
                     if (changingZip) {
                         setupOptions()
+                        setupWindows()
                     }
 
                     Log.i("SETUP", "Get Address")
@@ -242,173 +279,203 @@ class EditOrderController(activity: AppCompatActivity) {
         })
     }
 
-    fun updateFBZipCodes() {
-        val zips = ArrayList<String>()
-        zips.add("84111")
-        zips.add("84101")
-        zips.add("84105")
-        zips.add("84112")
-        zips.add("84103")
-        zips.add("84102")
-        //Set ZipData
-        for (zip in zips) {
-            var zipInfo = ZipInfo()
-            zipInfo.zipCode = zip
-            zipInfo.serviced = true
-            zipInfo.singlePrice = 25
-            zipInfo.enterprisePrice = 18
-            zipInfo.standardPrice = 20
-            zipInfo.windows = ArrayList<Window>() //Add windows here
+    fun setupWindows() {
+        windowsFragment = WindowsFragment()
+        radioGroup = RadioGroup(activity)
 
-            var dbZipInfo = zipInfo.toDb()
-
-            FirebaseDatabase.getInstance().getReference("zip/" + zipInfo.zipCode).setValue(dbZipInfo)
-        }
-    }
-
-    fun setOrder() {
-        val string = "user/" + mAuth.currentUser!!.uid + "/orders/" + orderToEdit
-        Log.i("MAIN", "String: " + string)
-        val dbref = FirebaseDatabase.getInstance().getReference(string)
-        dbref.addValueEventListener((object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot?) {
-                Log.i("MAIN", "Getting orders")
-                if (dataSnapshot != null) {
-                    Log.i("MAIN", "Getting orders 2")
-                    //orders = Order.ordersFromDb(dataSnapshot.value as HashMap<String, Any>, this@MainActivity)
-                    order = Order().fromDb(dataSnapshot.value as HashMap<String, Any>, activity)
-                    orderZip = order.zip
-
-                } else {
-
-                }
-            }
-
-            override fun onCancelled(p0: DatabaseError?) {
-
-            }
-
-        }))
-    }
-
-
-    fun saveOrderType() {
-        val group = activity.findViewById<RadioGroup>(R.id.option_radios)
-        when (group.checkedRadioButtonId) {
-            R.id.single_option -> order.orderType = "SINGLE"
-            R.id.standard_option -> order.orderType = "STANDARD"
-            R.id.enterprise_option -> order.orderType = "ENTERPRISE"
-            else -> {
-                // Note the block
-                order.orderType = "INCOMPLETE"
-            }
-        }
-    }
-
-    fun saveWindowInfo() {
-        if (activity.findViewById<RadioButton>(radioGroup!!.checkedRadioButtonId) != null) {
-            val checkRadio = activity.findViewById<RadioButton>(radioGroup!!.checkedRadioButtonId)
-            checkedWindowTag = checkRadio.tag as String
-
+        if (zipInfo != null) {
+            var radioCount = 0
             for (window in zipInfo!!.windows) {
+                Log.i("Windows", "Add Window")
+                val radio = RadioButton(activity)
+                radio.text = window.toText()
+                radio.tag = window.id()
+
+                radio.setOnClickListener(object : View.OnClickListener {
+                    override fun onClick(p0: View?) {
+                        delegate.onRadioClick()
+                    }
+                })
+
+                radio.setPadding(0, 0, 0, 20)
+                radioCount = radioCount + 1
+                radioGroup!!.addView(radio)
+
                 if (window.id() == checkedWindowTag) {
-                    order.window = window
+                    radio.isChecked = true
+                    delegate.onRadioClick()
                 }
+
             }
+
+
+
+
+
+            windowsFragment?.radioGroup = radioGroup!!
+
+            Log.i("EOC", "change windows 2")
+            if(windowsFragment != null && activity != null && windowsFragment!!.view != null) {
+                Log.i("EOC", "change windows 1")
+                activity!!.findViewById<LinearLayout>(R.id.radio_group_layout).removeAllViews()
+                activity!!.findViewById<LinearLayout>(R.id.radio_group_layout).addView(radioGroup)
+            }
+
         }
     }
 
-    fun saveInstructionInfo() {
-        order.soiled = (activity.findViewById<CheckBox>(R.id.soiled_check).isChecked)
-        if (order.soiled) {
-            order.soiledNote = (activity.findViewById<EditText>(R.id.soiled_text)).text.toString()
-        } else {
-            order.soiledNote = ""
-        }
+        fun updateFBZipCodes() {
+            val zips = ArrayList<String>()
+            zips.add("84111")
+            zips.add("84101")
+            zips.add("84105")
+            zips.add("84112")
+            zips.add("84103")
+            zips.add("84102")
+            //Set ZipData
+            for (zip in zips) {
+                var zipInfo = ZipInfo()
+                zipInfo.zipCode = zip
+                zipInfo.serviced = true
+                zipInfo.singlePrice = 25
+                zipInfo.enterprisePrice = 18
+                zipInfo.standardPrice = 20
+                zipInfo.windows = ArrayList<Window>() //Add windows here
 
-        order.cold = (activity.findViewById<CheckBox>(R.id.cold_check).isChecked)
-        if (order.cold) {
-            order.coldNote = (activity.findViewById<EditText>(R.id.cold_text)).text.toString()
-        } else {
-            order.coldNote = ""
-        }
+                var dbZipInfo = zipInfo.toDb()
 
-        order.softener = (activity.findViewById<CheckBox>(R.id.softener_check).isChecked)
-        if (order.softener) {
-            order.softenerNote = (activity.findViewById<EditText>(R.id.softener_text)).text.toString()
-        } else {
-            order.softenerNote = ""
-        }
-        order.notes = (activity.findViewById<EditText>(R.id.additional_instructions)).text.toString()
-
-        val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        if (activity.currentFocus != null) {
-            imm.hideSoftInputFromWindow(activity.currentFocus.getWindowToken(), 0)
-        }
-    }
-
-    fun getFragment(stage: Int) : Fragment { //leave fab and toolbar stuff in setupActivity
-        var fragment = android.support.v4.app.Fragment()
-        when (stage) {
-            0 -> {
-                fragment = IntroFragment()
-
+                FirebaseDatabase.getInstance().getReference("zip/" + zipInfo.zipCode).setValue(dbZipInfo)
             }
-            1 -> {
-                fragment = OptionsFragment()
+        }
 
-            }
-            2 -> {
-                fragment = WindowsFragment()
-                radioGroup = RadioGroup(activity)
+        fun setOrder() {
+            val string = "user/" + mAuth.currentUser!!.uid + "/orders/" + orderToEdit
+            Log.i("MAIN", "String: " + string)
+            val dbref = FirebaseDatabase.getInstance().getReference(string)
+            dbref.addValueEventListener((object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot?) {
+                    Log.i("MAIN", "Getting orders")
+                    if (dataSnapshot != null) {
+                        Log.i("MAIN", "Getting orders 2")
+                        //orders = Order.ordersFromDb(dataSnapshot.value as HashMap<String, Any>, this@MainActivity)
+                        order = Order().fromDb(dataSnapshot.value as HashMap<String, Any>, activity)
+                        orderZip = order.zip
 
-                if (zipInfo != null) {
-                    var radioCount = 0
-                    for (window in zipInfo!!.windows) {
-                        Log.i("Windows", "Add Window")
-                        val radio = RadioButton(activity)
-                        radio.text = window.toText()
-                        radio.tag = window.id()
-
-                        radio.setOnClickListener(object : View.OnClickListener {
-                            override fun onClick(p0: View?) {
-                                (activity as EditOrderActivity).onRadioClick()
-                            }
-                        })
-
-                        radio.setPadding(0, 0, 0, 20)
-                        radioCount = radioCount + 1
-                        radioGroup!!.addView(radio)
-
-                        if (window.id() == checkedWindowTag) {
-                            radio.isChecked = true
-                        }
+                    } else {
 
                     }
-
-
-
-
-
-                    fragment.radioGroup = radioGroup!!
                 }
 
+                override fun onCancelled(p0: DatabaseError?) {
+
+                }
+
+            }))
+        }
 
 
-            }
-            3 -> {
-                fragment = InstructionsFragment()
-
-
-            }
-            4 -> {
-
-                fragment = PaymentFragment()
-
+        fun saveOrderType() {
+            val group = activity.findViewById<RadioGroup>(R.id.option_radios)
+            when (group.checkedRadioButtonId) {
+                R.id.single_option -> order.orderType = "SINGLE"
+                R.id.standard_option -> order.orderType = "STANDARD"
+                R.id.enterprise_option -> order.orderType = "ENTERPRISE"
+                else -> {
+                    // Note the block
+                    order.orderType = "INCOMPLETE"
+                }
             }
         }
 
-        return fragment
+        fun saveWindowInfo() {
+            if (activity.findViewById<RadioButton>(radioGroup!!.checkedRadioButtonId) != null) {
+                val checkRadio = activity.findViewById<RadioButton>(radioGroup!!.checkedRadioButtonId)
+                checkedWindowTag = checkRadio.tag as String
+
+                for (window in zipInfo!!.windows) {
+                    if (window.id() == checkedWindowTag) {
+                        order.window = window
+                    }
+                }
+            }
+        }
+
+        fun saveInstructionInfo() {
+            order.soiled = (activity.findViewById<CheckBox>(R.id.soiled_check).isChecked)
+            if (order.soiled) {
+                order.soiledNote = (activity.findViewById<EditText>(R.id.soiled_text)).text.toString()
+            } else {
+                order.soiledNote = ""
+            }
+
+            order.cold = (activity.findViewById<CheckBox>(R.id.cold_check).isChecked)
+            if (order.cold) {
+                order.coldNote = (activity.findViewById<EditText>(R.id.cold_text)).text.toString()
+            } else {
+                order.coldNote = ""
+            }
+
+            order.softener = (activity.findViewById<CheckBox>(R.id.softener_check).isChecked)
+            if (order.softener) {
+                order.softenerNote = (activity.findViewById<EditText>(R.id.softener_text)).text.toString()
+            } else {
+                order.softenerNote = ""
+            }
+            order.notes = (activity.findViewById<EditText>(R.id.additional_instructions)).text.toString()
+
+            val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            if (activity.currentFocus != null) {
+                imm.hideSoftInputFromWindow(activity.currentFocus.getWindowToken(), 0)
+            }
+
+            order.address = (activity.findViewById<EditText>(R.id.pickup_address)).text.toString()
+            order.cityAndState = (activity.findViewById<EditText>(R.id.pickup_city)).text.toString()
+            order.zip = orderZip
+        }
+
+        fun getFragment(stage: Int): Fragment { //leave fab and toolbar stuff in setupActivity
+            var fragment = android.support.v4.app.Fragment()
+            when (stage) {
+                0 -> {
+                    fragment = IntroFragment()
+
+                }
+                1 -> {
+                    optionsFragment = OptionsFragment()
+                    fragment = optionsFragment!!
+
+
+                }
+                2 -> {
+                    setupWindows()
+                    if(windowsFragment != null) fragment = windowsFragment!!
+
+
+                }
+                3 -> {
+                    fragment = InstructionsFragment()
+
+
+                }
+                4 -> {
+
+                    fragment = PaymentFragment()
+
+                }
+                5 -> {
+                    fragment = ConfirmationFragment()
+                }
+            }
+
+            return fragment
+        }
+
+    fun saveFromSingleView() {
+        saveOrderType()
+        saveWindowInfo()
+        saveInstructionInfo()
+        saveOrder()
     }
-}
+    }
+
 

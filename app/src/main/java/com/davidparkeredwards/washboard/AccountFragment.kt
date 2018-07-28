@@ -41,6 +41,11 @@ class AccountFragment : Fragment() {
         return inflater!!.inflate(R.layout.fragment_account, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        (activity as MainActivity).updateUI()
+    }
+
     fun authorizeCard() {
         val mCardInputWidget = view?.findViewById<CardInputWidget>(R.id.card_input_widget)
         val cardToSave = mCardInputWidget?.getCard()

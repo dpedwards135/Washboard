@@ -24,6 +24,8 @@ import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
 import android.widget.*
 import com.crashlytics.android.Crashlytics
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.*
@@ -50,6 +52,9 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        if(supportActionBar != null) {
+            supportActionBar!!.hide()
+        }
 
         mAuth = FirebaseAuth.getInstance()
         database = FirebaseDatabase.getInstance()
@@ -71,7 +76,13 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         })
 
         email_sign_in_button.setOnClickListener { attemptLogin() }
+        findViewById<Button>(R.id.forgot_password_button).setOnClickListener(object: View.OnClickListener{
+            override fun onClick(p0: View?) {
+                resetPassword()
+            }
+        })
     }
+
 
     override fun onStart() {
         super.onStart()
@@ -387,6 +398,8 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
                         && dataSnapshot.exists()
                         && dataSnapshot.hasChildren()) {
                     if(dataSnapshot.hasChild("orders")) {
+                        //startMainActivity()
+                        Log.i("Setup", "User has orders")
                         startMainActivity()
                         return
                         }
@@ -416,4 +429,37 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         val setupActivity = Intent(this, SetupActivity::class.java)
         startActivity(setupActivity)
     }
+
+    fun resetPassword() {
+        var alert = AlertDialog.Builder(this)
+
+        val layoutInflater = layoutInflater
+        val resetPasswordView = layoutInflater.inflate(R.layout.reset_password_dialog,null)
+
+        alert.setView(resetPasswordView)
+        alert.setCancelable(true)
+
+        val a : AlertDialog = alert.create()
+        a.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        a.show()
+        resetPasswordView.findViewById<Button>(R.id.reset_button).setOnClickListener {
+            var emailAddress = resetPasswordView.findViewById<EditText>(R.id.reset_email_edittext).text.toString()
+
+            mAuth.sendPasswordResetEmail(emailAddress).addOnCompleteListener(object: OnCompleteListener<Void> {
+                override fun onComplete(p0: Task<Void>) {
+                    if(p0.isSuccessful) {
+                        Toast.makeText(this@LoginActivity,getString(R.string.reset_email_sent),Toast.LENGTH_SHORT).show()
+                        a.dismiss()
+                    } else {
+                        Toast.makeText(this@LoginActivity,getString(R.string.account_not_found),Toast.LENGTH_LONG).show()
+                    }
+                }
+            })
+        }
+        resetPasswordView.findViewById<Button>(R.id.cancel_password_reset).setOnClickListener({
+            a.dismiss()
+        })
+    }
+
+
 }

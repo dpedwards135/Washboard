@@ -44,6 +44,8 @@ class Order() {
         map.put("order_type", orderType)
         if(window != null) map.put("window", window!!.toDb()) else map.put("window", "")
         map.put("address", address)
+        map.put("city_and_state", cityAndState)
+        map.put("zip", zip)
         map.put("soiled", soiled)
         map.put("soiled_note", soiledNote)
         map.put("cold", cold)
@@ -64,6 +66,8 @@ class Order() {
         this.window = Window(8,8,8,8,8,8, context)
                 .fromDb(dataSnapshot.getValue("window") as Map<String, Any>)
         this.address = map.getValue("address") as String
+        this.cityAndState = map.getValue("city_and_state") as String
+        this.zip = map.getValue("zip") as String
         this.soiled = map.getValue("soiled") as Boolean
         this.soiledNote = map.getValue("soiled_note") as String
         this.cold = map.getValue("cold") as Boolean
