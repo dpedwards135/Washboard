@@ -1,5 +1,6 @@
 package com.davidparkeredwards.washboard
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
@@ -93,8 +94,12 @@ class MainActivity : AppCompatActivity() {
 
                     val orderSnapshot = dataSnapshot.child("/orders/").value as HashMap<String, Any>
                     Log.i("MAIN", "Getting orders 2")
-                    orders = Order.ordersFromDb(orderSnapshot, this@MainActivity)
-
+                    var allOrders = Order.ordersFromDb(orderSnapshot, this@MainActivity)
+                    var currentOrders = ArrayList<Order>()
+                    for(order in allOrders) {
+                        if(order.cancelled != true) currentOrders.add(order)
+                    }
+                    orders = currentOrders
 
                     user.name = dataSnapshot.child("name").value as String
                     user.email = dataSnapshot.child("email").value as String
@@ -147,6 +152,8 @@ class MainActivity : AppCompatActivity() {
                     logout()
                 }
             })
+
+
         }
     }
 
@@ -156,6 +163,29 @@ class MainActivity : AppCompatActivity() {
 
     fun pauseOrder(view: View) {
         (supportFragmentManager.findFragmentByTag("ORDER_FRAGMENT") as OrdersFragment).pauseOrder()
+    }
+
+    fun deleteOrder(view: View) {
+
+        var alert = AlertDialog.Builder(this)
+
+
+        alert.setTitle(getString(R.string.delete_order))
+        alert.setMessage(getString(R.string.delete_order_confirmation))
+        alert.setPositiveButton(R.string.yes, DialogInterface.OnClickListener() { dialog, int ->
+            (supportFragmentManager.findFragmentByTag("ORDER_FRAGMENT") as OrdersFragment).deleteOrder()
+        })
+        alert.setNegativeButton(R.string.cancel,  DialogInterface.OnClickListener() { dialog, int ->
+            dialog.dismiss()
+        })
+        alert.setCancelable(true)
+
+        val a : AlertDialog = alert.create()
+        a.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+
+        a.show()
+
+
 
     }
 

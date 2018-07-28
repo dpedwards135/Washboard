@@ -56,7 +56,7 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/pause_button"
                         android:onClick="pauseOrder"/>
-                </LinearLayout>
+                    </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -82,10 +82,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:id="@+id/cancel_button"
-                        android:text="@string/cancel"/>
-                </LinearLayout>
+                        android:text="@string/delete_order"
+                        android:onClick="deleteOrder"/>
 
-            </LinearLayout>
+                </LinearLayout>
+            <Button
+                android:id="@+id/add_order_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/add_order"
+                android:onClick="deleteOrder"/>
+                </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

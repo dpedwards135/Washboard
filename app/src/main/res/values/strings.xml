@@ -139,4 +139,9 @@ All laundry not set aside as delicate or hang dry will be dried on medium heat t
     <string name="account_not_found">Account not found. Please check address or create a new account.</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="add_order">Add New Order</string>
+    <string name="delete_order">Delete Order</string>
+    <string name="delete_order_confirmation">This action cannot be undone.
+        If you need to skip this order for a period of time press pause so you can reactivate it at your convenience.
+        Are you sure you want to proceed?</string>
 </resources>

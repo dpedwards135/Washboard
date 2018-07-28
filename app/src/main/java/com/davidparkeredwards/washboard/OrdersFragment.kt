@@ -1,6 +1,7 @@
 package com.davidparkeredwards.washboard
 
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.util.Log
@@ -53,6 +54,10 @@ class OrdersFragment : Fragment(), EditOrderDelegate {
         super.onViewCreated(view, savedInstanceState)
 
         updateOrders((activity as MainActivity).orders)
+        view.findViewById<Button>(R.id.add_order_button).setOnClickListener({
+            val intent = Intent(activity, SetupActivity::class.java)
+            startActivity(intent)
+        })
 
     }
 
@@ -63,7 +68,7 @@ class OrdersFragment : Fragment(), EditOrderDelegate {
 
         if (view != null && context != null) {
             val stringArray = ArrayList<String>()
-            stringArray.add(context!!.getString(R.string.orders))
+            stringArray.add(context!!.getString(R.string.orders) + " (" + orders.count() + ")")
             for (order in orders) {
                 if (order.window != null) {
                     stringArray.add(order.window!!.toText())
@@ -93,8 +98,8 @@ class OrdersFragment : Fragment(), EditOrderDelegate {
 
         if (!orders.isEmpty() && displayOrderIndex == -1) {
             displayOrderIndex = 0
-            updateOrderUI()
         }
+        updateOrderUI()
 
     }
 
@@ -219,6 +224,56 @@ class OrdersFragment : Fragment(), EditOrderDelegate {
         orders.set(displayOrderIndex, editOrderController.order)
         (activity as MainActivity).orders = orders
         updateOrderUI()
+    }
+
+    fun deleteOrder() {
+        orders[displayOrderIndex].cancelled = true
+
+        val order = orders[displayOrderIndex]
+
+        val mAuth = FirebaseAuth.getInstance()
+        val database = FirebaseDatabase.getInstance()
+        val dbref = database.getReference("user/" + mAuth.currentUser?.uid + "/orders")
+        dbref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot?) {
+                if (dataSnapshot != null
+                        && dataSnapshot.exists()) {
+                    if (order.id != null
+                            && order.id != ""
+                            && dataSnapshot.hasChildren()
+                            && dataSnapshot.hasChild(order.id)) {
+                        val dbOrder = order.toDb()
+                        database.getReference("user/" + mAuth.currentUser?.uid + "/orders/" + order.id).updateChildren(dbOrder)
+                        Log.i("SETUP", "UpdateChildren")
+                    } else {
+                        order.id = dbref.push().key
+                        val dbOrder = order.toDb()
+                        database.getReference("user/" + mAuth.currentUser?.uid + "/orders/" + order.id).setValue(dbOrder)
+                        Log.i("SETUP", "SetValue 1")
+                    }
+                    if(activity is SetupActivity) {
+                        //progressBar.visibility = View.GONE
+                    }
+                } else {
+                    order.id = dbref.push().key
+                    val dbOrder = order.toDb()
+                    database.getReference("user/" + mAuth.currentUser?.uid + "/orders/" + order.id).setValue(dbOrder)
+                    if(activity is SetupActivity) {
+                        //progressBar.visibility = View.GONE
+                    }
+                    Log.i("SETUP", "SetValue 2")
+                }
+                if(activity != null) {
+
+                    updateOrderUI()
+                }
+            }
+
+            override fun onCancelled(p0: DatabaseError?) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+        })
+
     }
 
 
