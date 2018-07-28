@@ -34,6 +34,18 @@ class PaymentFragment : Fragment() {
         return inflater!!.inflate(R.layout.fragment_payment, container, false)
     }
 
+
+    fun getCard() {
+
+    }
+
+
+
+
+
+
+
+
     companion object {
         // TODO: Rename parameter arguments, choose names that match
         // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -58,5 +70,7 @@ class PaymentFragment : Fragment() {
             return fragment
         }
     }
+
+
 
 }// Required empty public constructor

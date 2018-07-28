@@ -12,6 +12,10 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.stripe.android.Stripe
+import com.stripe.android.TokenCallback
+import com.stripe.android.model.Token
+import com.stripe.android.view.CardInputWidget
 
 /**
  * Created by davidedwards on 7/27/18.
@@ -38,6 +42,8 @@ class EditOrderController(activity: AppCompatActivity, delegate: EditOrderDelega
     var zipInfo: ZipInfo? = null
     var orderToEdit: String = ""
     var optionsFragment : OptionsFragment? = null
+
+    var cards = ArrayList<CardData>()
 
     fun setup(order: Order) {
 
@@ -476,6 +482,97 @@ class EditOrderController(activity: AppCompatActivity, delegate: EditOrderDelega
         saveInstructionInfo()
         saveOrder()
     }
+
+
+    fun getCard() {
+
+        val cardData = CardData()
+
+        val mCardInputWidget = activity.findViewById<CardInputWidget>(R.id.card_input_widget)
+        val cardToSave = mCardInputWidget.getCard()
+        if (cardToSave == null) {
+            Log.i("EOC", "Invalid Card Data")
+            return
+        }
+        if(!cardToSave.validateCard()) return
+
+        cardData.cardType = cardToSave.brand
+        cardData.lastFour = cardToSave.last4
+        if(cardToSave.expMonth != null) cardData.expMonth = cardToSave.expMonth!!
+        cardData.expYear = cardToSave.expYear
+
+        val stripe = Stripe(activity, "pk_test_ngGsAXUpi79PSFkAs2MzOAc1")
+
+        stripe.createToken(cardToSave, object: TokenCallback{
+            override fun onSuccess(token: Token?) {
+                cardData.token = token
+            }
+
+            override fun onError(error: java.lang.Exception?) {
+                Log.i("EOC", error.toString())
+            }
+        })
+
+
     }
+
+    //Check if user has a card in the system and give them option to charge that one or add a new one
+
+    fun getCardData() {
+        val database = FirebaseDatabase.getInstance()
+        val dbref = database.getReference("user/" + mAuth.currentUser?.uid + "/cards/")
+        dbref.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot?) {
+                if (dataSnapshot != null
+                        && dataSnapshot.exists()
+                        && dataSnapshot.hasChildren()) {
+
+                    cards = ArrayList<CardData>()
+
+                    for (child in dataSnapshot.children) {
+                        val card = child.value as CardData
+                        if (card.valid == 1) {
+                            cards.add(card)
+                        }
+                    }
+
+                }
+            }
+
+            override fun onCancelled(p0: DatabaseError?) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+    })
+    }
+
+    fun saveCardData(cardData: CardData) {
+        val database = FirebaseDatabase.getInstance()
+        val dbref = database.getReference("user/" + mAuth.currentUser?.uid + "/cards/")
+        cardData.id = dbref.push().key
+        val newCardRef = dbref.child(cardData.id)
+        newCardRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot?) {
+                if (dataSnapshot != null
+                        && dataSnapshot.exists()
+                        && dataSnapshot.hasChild("valid")) {
+
+                    if(dataSnapshot.child("valid").value == 1) {
+                        continueToConfirmationPage
+                    } else if(dataSnapshot.child("valid").value == 100) {
+                        Log.i("EOC", "Unable to authorize card")
+                    }
+
+                }
+            }
+
+            override fun onCancelled(p0: DatabaseError?) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+        })
+        dbref.child(cardData.id).setValue(cardData)
+    }
+
+
+}
 
 
